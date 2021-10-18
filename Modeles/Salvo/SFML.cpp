@@ -22,14 +22,15 @@ struct Army
 {
 	float manpower = 0;
 	float power = 1;
+	float deffens = 0;
 
-	void Calc(Army* enemy, float dt)
+	void Calc(Army* enemy)
 	{
-		float tm = this->manpower;
-		float em = enemy->manpower;
+		float tm =  ceilf(this->manpower);
+		float em = ceilf(enemy->manpower);
 
-		this->manpower = std::max(0.0f, tm - enemy->power * em * dt);
-		enemy->manpower = std::max(0.0f, em - this->power * tm * dt);
+		this->manpower =  std::max(0.0f, this->manpower - std::max(0.0f, enemy->power * em - this->deffens  * tm));
+		enemy->manpower = std::max(0.0f, enemy->manpower - std::max(0.0f, this->power  * tm - enemy->deffens * em));
 	}
 
 
@@ -59,9 +60,12 @@ int main()
 {
 	int size = 1000;
 
-	A.manpower = 1000;
-	B.manpower = 500;
-	B.power = 3.9921;
+	A.manpower = 10;
+	B.manpower = 5;
+	B.power = 0.003;
+	B.deffens = 0.002;
+	A.power = 0.002;
+	A.deffens = 0.002;
 
 	float maxx = std::max(A.manpower, B.manpower);
 
@@ -71,8 +75,8 @@ int main()
 		lineB[i].position.x = 50 + i * (size - 100) / float(500);
 		lineA[i].position.y = 950 - (A.manpower/maxx) * 900;
 		lineB[i].position.y = 950 - (B.manpower/maxx) * 900;
-		for (int j = 0; j < 10; j++)
-			A.Calc(&B, 0.001);
+		for (int j = 0; j < 1; j++)
+			A.Calc(&B);
 
 
 
@@ -83,7 +87,7 @@ int main()
 	setting.antialiasingLevel = 4;
 
 	sf::RenderWindow window(sf::VideoMode(size, size), "SFML",sf::Style::Default, setting);
-	float fps = 1;
+	float fps = 60;
 	double dt = 0;
 	auto t1 = std::chrono::high_resolution_clock::now();
 	auto t2 = std::chrono::high_resolution_clock::now();
